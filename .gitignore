@@ -102,7 +102,6 @@ config.log
 /xbmc-xrandr
 /git_revision.h
 /libtool
-/*.patch
 
 # /addons/
 /addons/com.nullsoft.milkdrop.xbmc/*.vis

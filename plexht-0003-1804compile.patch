@@ -1,0 +1,28 @@
+From: David Diepenbrock <ddiepo@gmail.com>
+Date: Tue, 21 Apr 2020 13:42:45 +0700
+Subject: [PATCH] compile on 18.04-4
+
+--- a/plex/CMakeLists.txt
++++ b/plex/CMakeLists.txt
+@@ -182,7 +182,7 @@ if(ENABLE_DUMP_SYMBOLS)
+   add_custom_target(symbols DEPENDS ${PLEX_TARGET_NAME}_symbols)
+ endif(ENABLE_DUMP_SYMBOLS)
+ 
+-target_link_libraries(${PLEX_TARGET_NAME} xbmc ${CONFIG_INTERNAL_LIBS} ${CONFIG_PLEX_LINK_LIBRARIES})
++target_link_libraries(${PLEX_TARGET_NAME} xbmc sqlite3 ${CONFIG_INTERNAL_LIBS} ${CONFIG_PLEX_LINK_LIBRARIES})
+ 
+ if(TARGET_WIN32)
+   add_custom_command(
+diff --git a/xbmc/system_gl.h b/xbmc/system_gl.h
+index 413627713..ec286c29d 100644
+--- a/xbmc/system_gl.h
++++ b/xbmc/system_gl.h
+@@ -34,7 +34,7 @@
+   #elif defined(TARGET_LINUX)
+     #include <GL/glew.h>
+     #include <GL/gl.h>
+-    #include <GL/glext.h>
++//    #include <GL/glext.h>
+   #elif defined(TARGET_FREEBSD)
+     #include <GL/glew.h>
+     #include <GL/gl.h>

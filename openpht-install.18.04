@@ -1,0 +1,97 @@
+#!/bin/bash
+
+#
+# UBUNTU based 18.04-4 install script
+#
+# This script to fetch and install OpenPHT and dependencies -- previously known to work on 14.04 and 16.04, but modified heavily to run on 18.04-4
+# This script is not ready for production, use at own risk, no support is provided.
+# Based on vdimitrov's guide https://forums.plex.tv/discussion/comment/1196558/#Comment_1196558
+# https://www.anythingtech.com.au/public/openpht-install
+# Updated since these to work on 18.04-4
+
+# OPTIONS
+WORKINGBASEDIR=~/OpenPHTtest
+OPENPHTINSTALLDIR=/opt/openpht
+LOADERSCRIPTDIR=~/OpenPHTtest # Was "~"
+
+BRANCH=openpht-1.9-for-18.04.4
+GITREPO=https://github.com/ddiepo/OpenPHT.git
+
+#BRANCH=openpht-source
+#GITREPO=https://github.com/RasPlex/OpenPHT.git
+
+# Leave the following as is
+CMAKEVERREQ=3.5.2
+# END OPTIONS
+
+if [[ $EUID -eq 0 ]]; then
+   echo "Please run without root" 1>&2
+   exit 1
+fi
+
+if [[ ! $(mount |grep "/tmp" |grep -v noexec) ]]; then
+   echo "/tmp must be mounted with exec for ffmpeg to compile."
+   echo "You can fix this by: sudo mount -o remount,exec /tmp"
+   exit 1
+fi
+
+sudo clear
+
+CMAKEBIN=/usr/bin/cmake
+VER=( ${CMAKEVERREQ//./ } )
+if (( $(echo "$(lsb_release -r -s) 14.04" | awk '{print ($1 <= $2)}') )); then
+	if [ ! -d "/opt/cmake-${CMAKEVERREQ}-Linux-x86_64" ]; then
+		curl -L https://cmake.org/files/v${VER[0]}.${VER[1]}/cmake-${CMAKEVERREQ}-Linux-x86_64.tar.gz | sudo tar -xzC /opt
+	fi
+	CMAKEBIN=/opt/cmake-${CMAKEVERREQ}-Linux-x86_64/bin/cmake
+fi
+
+if ! $(grep -q "team-xbmc\/ppa" /etc/apt/sources.list /etc/apt/sources.list.d/*); then
+	sudo apt-add-repository -sy ppa:team-xbmc/ppa
+fi
+sudo apt-get update
+sudo apt-get -y build-dep kodi
+sudo apt-get -y install \
+autoconf automake build-essential libass-dev libusb-dev libfreetype6-dev libsdl1.2-dev \
+libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \
+libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev libsdl-image1.2-dev libflac++-dev \
+libshairport-dev git-core libsqlite3-dev liblzo2-dev libyajl-dev libmicrohttpd-dev \
+libtinyxml-dev libglew-dev libxrandr-dev libcurl4-openssl-dev \
+libmpeg2-4-dev libplist-dev libcec-dev libexpat1-dev libmodplug-dev \
+libusb-dev libudev-dev libblkid-dev e2fslibs-dev libboost-all-dev libaudit-dev \
+libiso9660-dev librtmp-dev
+
+mkdir -p ${WORKINGBASEDIR}
+cd ${WORKINGBASEDIR}
+git clone ${GITREPO} ${BRANCH}
+cd ${WORKINGBASEDIR}/${BRANCH}
+git reset --hard
+git pull
+if (( $(echo "$(lsb_release -r -s) 18.04" | awk '{print ($1 <= $2)}') )); then
+  patch -p1 < plexht-0001-cec-update-to-libcec-4.patch # libcec>=4
+  patch -p1 < plexht-0002-websocketpp-openssl.patch # openssl>=1.1
+  patch -p1 < plexht-0003-1804compile.patch # opengl compile error and sqlite link error
+fi
+
+
+cd ${WORKINGBASEDIR}
+mkdir ${WORKINGBASEDIR}/openpht-build
+cd ${WORKINGBASEDIR}/openpht-build
+${CMAKEBIN} -DCMAKE_BUILD_TYPE=Debug -DCOMPRESS_TEXTURES=on -DUSE_INTERNAL_FFMPEG=on -DENABLE_DUMP_SYMBOLS=off -DENABLE_AUTOUPDATE=off -DCMAKE_INSTALL_PREFIX="${OPENPHTINSTALLDIR}" "${WORKINGBASEDIR}/${BRANCH}"
+ionice -c 3 nice -n 19 make -j $(nproc) || exit 1
+sudo rm -R ${OPENPHTINSTALLDIR}/* 
+sudo make install || exit 1
+make clean
+
+sudo sh -c "echo \#!/bin/sh > ${LOADERSCRIPTDIR}/plexhometheater.sh"
+#sudo sh -c "echo \#sleep 30 >> {LOADERSCRIPTDIR}/plexhometheater.sh"
+sudo sh -c "echo export XBMC_HOME=${OPENPHTINSTALLDIR}/share/openpht >>${LOADERSCRIPTDIR}/plexhometheater.sh"
+sudo sh -c "echo export LD_LIBRARY_PATH=${OPENPHTINSTALLDIR}/lib/openpht/system/players/dvdplayer >> ${LOADERSCRIPTDIR}/plexhometheater.sh"
+sudo sh -c "echo \#pactl suspend-sink 1 1 >> ${LOADERSCRIPTDIR}/plexhometheater.sh"
+sudo sh -c "echo \#export AE_SINK=ALSA >> ${LOADERSCRIPTDIR}/plexhometheater.sh"
+sudo sh -c "echo ${OPENPHTINSTALLDIR}/lib/openpht/plexhometheater >> ${LOADERSCRIPTDIR}/plexhometheater.sh"
+sudo sh -c "echo \#pactl suspend-sink 1 0 >> ${LOADERSCRIPTDIR}/plexhometheater.sh"
+sudo chmod +x ${LOADERSCRIPTDIR}/plexhometheater.sh
+sudo chown $USER:$USER ${LOADERSCRIPTDIR}/plexhometheater.sh
+
+echo ${LOADERSCRIPTDIR}/plexhometheater.sh to run OpenPHT
