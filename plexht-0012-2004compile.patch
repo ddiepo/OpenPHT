@@ -1,0 +1,42 @@
+From: David Diepenbrock <ddiepo@gmail.com>
+Date: Tue, 15 Sept 2020 16:42:45 +0700
+Subject: [PATCH] compile on 20.04-1 (with boost 1.71)
+
+diff --git plex/Network/NetworkInterfaceLinux.cpp plex/Network/NetworkInterfaceLinux.cpp
+index 37236af73..f9c51b692 100755
+--- plex/Network/NetworkInterfaceLinux.cpp
++++ plex/Network/NetworkInterfaceLinux.cpp
+@@ -148,7 +148,7 @@ void NetworkInterface::WatchForChanges()
+ {
+   // Start the thread.
+   dprintf("NetworkInterface: Starting watch thread.");
+-  thread t = thread(boost::bind(&RunWatchingForChanges));
++  boost::thread t = boost::thread(boost::bind(&RunWatchingForChanges));
+   t.detach();
+   
+   // Start with a change, because otherwise we're in steady state.
+diff --git plex/Network/NetworkServiceAdvertiser.h plex/Network/NetworkServiceAdvertiser.h
+index d68c76bc9..16c08f944 100644
+--- plex/Network/NetworkServiceAdvertiser.h
++++ plex/Network/NetworkServiceAdvertiser.h
+@@ -193,7 +193,7 @@ class NetworkServiceAdvertiser : public NetworkServiceBase
+     }
+     else
+     {
+-      eprintf("Network Service: Error in advertiser handle read: %d (%s) socket=%d", error.value(), error.message().c_str(), socket->native());
++      eprintf("Network Service: Error in advertiser handle read: %d (%s) socket=%d", error.value(), error.message().c_str(), socket->native_handle());
+       usleep(1000 * 100);
+     }
+     
+diff --git plex/Network/NetworkServiceBrowser.h plex/Network/NetworkServiceBrowser.h
+index 56f298591..f959cd035 100644
+--- plex/Network/NetworkServiceBrowser.h
++++ plex/Network/NetworkServiceBrowser.h
+@@ -279,7 +279,7 @@ class NetworkServiceBrowser : public NetworkServiceBase
+     }
+     else
+     {
+-      eprintf("Network Service: Error in browser handle read: %d (%s) socket=%d", error.value(), error.message().c_str(), socket->native());
++      eprintf("Network Service: Error in browser handle read: %d (%s) socket=%d", error.value(), error.message().c_str(), socket->native_handle());
+       usleep(1000 * 100);
+     }

@@ -1,0 +1,72 @@
+diff --git a/websocketpp/transport/asio/connection.hpp b/websocketpp/transport/asio/connection.hpp
+index 60f88a7..a68fdb8 100644
+--- a/websocketpp/transport/asio/connection.hpp
++++ b/websocketpp/transport/asio/connection.hpp
+@@ -312,7 +312,7 @@ public:
+      */
+     timer_ptr set_timer(long duration, timer_handler callback) {
+         timer_ptr new_timer = lib::make_shared<lib::asio::steady_timer>(
+-            lib::ref(*m_io_service),
++            *m_io_service,
+             lib::asio::milliseconds(duration)
+         );
+
+@@ -461,8 +461,7 @@ protected:
+         m_io_service = io_service;
+
+         if (config::enable_multithreading) {
+-            m_strand = lib::make_shared<lib::asio::io_service::strand>(
+-                lib::ref(*io_service));
++            m_strand = lib::make_shared<lib::asio::io_service::strand>(*io_service);
+         }
+
+         lib::error_code ec = socket_con_type::init_asio(io_service, m_strand,
+diff --git a/websocketpp/transport/asio/endpoint.hpp b/websocketpp/transport/asio/endpoint.hpp
+index ddab2c7..6b107d0 100644
+--- a/websocketpp/transport/asio/endpoint.hpp
++++ b/websocketpp/transport/asio/endpoint.hpp
+@@ -195,8 +195,7 @@ public:
+
+         m_io_service = ptr;
+         m_external_io_service = true;
+-        m_acceptor = lib::make_shared<lib::asio::ip::tcp::acceptor>(
+-            lib::ref(*m_io_service));
++        m_acceptor = lib::make_shared<lib::asio::ip::tcp::acceptor>(*m_io_service);
+
+         m_state = READY;
+         ec = lib::error_code();
+@@ -688,9 +687,7 @@ public:
+      * @since 0.3.0
+      */
+     void start_perpetual() {
+-        m_work = lib::make_shared<lib::asio::io_service::work>(
+-            lib::ref(*m_io_service)
+-        );
++        m_work = lib::make_shared<lib::asio::io_service::work>(*m_io_service);
+     }
+
+     /// Clears the endpoint's perpetual flag, allowing it to exit when empty
+@@ -854,8 +851,7 @@ protected:
+
+         // Create a resolver
+         if (!m_resolver) {
+-            m_resolver = lib::make_shared<lib::asio::ip::tcp::resolver>(
+-                lib::ref(*m_io_service));
++            m_resolver = lib::make_shared<lib::asio::ip::tcp::resolver>(*m_io_service);
+         }
+
+         tcon->set_uri(u);
+diff --git a/websocketpp/transport/asio/security/none.hpp b/websocketpp/transport/asio/security/none.hpp
+index 5c8293d..2999e22 100644
+--- a/websocketpp/transport/asio/security/none.hpp
++++ b/websocketpp/transport/asio/security/none.hpp
+@@ -168,8 +168,7 @@ protected:
+             return socket::make_error_code(socket::error::invalid_state);
+         }
+
+-        m_socket = lib::make_shared<lib::asio::ip::tcp::socket>(
+-            lib::ref(*service));
++        m_socket = lib::make_shared<lib::asio::ip::tcp::socket>(*service);
+
+         if (m_socket_init_handler) {
+             m_socket_init_handler(m_hdl, *m_socket);

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #
-# UBUNTU based 18.04-4 install script
+# UBUNTU based 20.04-1 install script
+# This should also work on 18.04-4
 #
 # This script to fetch and install OpenPHT and dependencies -- previously known to work on 14.04 and 16.04, but modified heavily to run on 18.04-4
 # This script is not ready for production, use at own risk, no support is provided.
@@ -67,12 +68,19 @@ git clone ${GITREPO} ${BRANCH}
 cd ${WORKINGBASEDIR}/${BRANCH}
 git reset --hard
 git pull
-if (( $(echo "$(lsb_release -r -s) 18.04" | awk '{print ($1 <= $2)}') )); then
+if (( $(echo "$(lsb_release -r -s) 18.04" | awk '{print ($1 >= $2)}') )); then
   patch -p1 < plexht-0001-cec-update-to-libcec-4.patch # libcec>=4
   patch -p1 < plexht-0002-websocketpp-openssl.patch # openssl>=1.1
   patch -p1 < plexht-0003-1804compile.patch # opengl compile error and sqlite link error
 fi
 
+if (( $(echo "$(lsb_release -r -s) 20.04" | awk '{print ($1 >= $2)}') )); then
+  # TODO patch plex/Network/NetworkServiceAdvertiser.h & NetworkServiceBrowser.h  "native()" -> "native_handle()"
+  # TODO patch lib/websocketpp/common/transport/connection.hpp "lib::ref" remove
+  # TODO patch plex/Network/NetworkInterfaceLinux.cpp add "boost::" to thread
+  patch -p1 -d ./lib < plexht-0011-websocketpp-boost171.patch # boost 1.71
+  patch -p0 < plexht-0012-2004compile.patch # boost 1.71 updates
+fi
 
 cd ${WORKINGBASEDIR}
 mkdir ${WORKINGBASEDIR}/openpht-build

@@ -1,15 +1,19 @@
-I spent a good bit of time to get OpenPHT 1.9 to build on my Ubuntu 18.04.4 setup and wanted to share it.
+I spent a good bit of time to get OpenPHT 1.9 to build on my Ubuntu 18.04.4 -- update, now 20.04 
+setup and wanted to share it.
 
 I have no intention to try to merge this, as OpenPHT seems to no longer be actively developed.
 
 WHAT TO DO:
 
-1) If you're not using Ubuntu 18.04.4, all bets are off.
-2) Start with a clean 18.04.4 install (or, whatever)
-3) Fetch the "openpht-install.18.04" script from the code, and save it to your system.
+1) If you're not using Ubuntu 18.04.4 or 20.04.1, all bets are off.
+2) Start with a clean 18.04.4 or 20.04.1 install (or, whatever)
+3) Fetch the "openpht-install.20.04" script from the code, and save it to your system.
 4) Edit the directories at the top of the script as desired
 5) Run the script, it will fetch the source from this repo, compile it, and install it.
 6) Enjoy.
 
 I'm providing this entirely as-is.
 I'm not providing support.
+
+I have not tested this exact version on 18.04, but it should still work. I based from there and then
+updated for 20.04 trying to keep things separate. There's another 18.04 branch if this has issues.  
