@@ -15,7 +15,7 @@ WORKINGBASEDIR=~/OpenPHTtest
 OPENPHTINSTALLDIR=/opt/openpht
 LOADERSCRIPTDIR=~/OpenPHTtest # Was "~"
 
-BRANCH=openpht-1.9-for-18.04.4
+BRANCH=openpht-1.9-for-20.04.1
 GITREPO=https://github.com/ddiepo/OpenPHT.git
 
 #BRANCH=openpht-source
